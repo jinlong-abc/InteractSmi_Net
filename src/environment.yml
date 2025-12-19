@@ -1,0 +1,15 @@
+name: interactsmi_env
+channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pytorch-cuda=12.4
+  - torchaudio
+  - torchvision
+  - ipykernel
+  - pymol-open-source
+  - openbabel
+  - rdkit

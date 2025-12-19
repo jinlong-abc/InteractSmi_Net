@@ -1,0 +1,20 @@
+src/
+├── modules/
+│   ├── __init__.py
+│   ├── attention.py      # 注意力机制相关模块
+│   ├── embeddings.py     # 位置编码和词嵌入
+│   └── feedforward.py    # 前馈网络模块
+├── layers/
+│   ├── __init__.py
+│   ├── encoder_layer.py  # 编码器层
+│   └── decoder_layer.py  # 解码器层
+├── models/
+│   ├── __init__.py
+│   ├── encoder.py        # 完整编码器
+│   ├── decoder.py        # 完整解码器
+│   └── transformer.py    # 完整Transformer
+└── utils/
+    ├── __init__.py
+    └── masking.py        # 掩码工具
+
+```自己实现易于维护的transformer架构, 方便后续的调试和修改。```

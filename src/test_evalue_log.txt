@@ -1,0 +1,13 @@
+Using GPU: Quadro GV100
+The code runs on: cuda
+Loading protein embeddings...
+Loaded embeddings for 4 proteins
+Total samples: 4, Batch size: 1, Num batches: 4
+Predicted affinity: 8.275506973266602
+Generated FusionSmi 1: [NH3+] [CH2] [c] 1 [cH] [cH] [c] ( [NH] [C] ( = [O] ) [c] 2 [cH] [c] ( [NH] [c] 3 [n] [cH] [cH] [cH] [n] 3 ) [c] 3 [cH] [c] ( [C] ( = [NH] ) [NH2] ) [cH] [cH] [c] 3 [cH] 2 ) [cH] [cH] 1 <BOS> [NH3+] { Asp 17 HB } { Asp 17 IB } [CH2] { Gly 35 VDW } [c] { Gly 34 VDW } 1 [cH] { Val 20 Hy } [cH] [c] ( [NH] [C] ( = [O] ) [c] 2 [cH] [c] ( [NH] [c] 3 [n] [cH] [cH] [cH] [n] 3 ) [c] 3 [cH] [c] ( [C] ( = [NH] ) [NH2] ) [cH] [cH] [c] 3 [cH] 2 ) [cH] { Cys 23 VDW } [cH] { Gly 33 VDW } 1
+Predicted affinity: 7.458083152770996
+Generated FusionSmi 1: [NH3+] [C@@H] ( [CH2] [c] 1 [c] ( [O] [CH2] [P@@] ( = [O] ) ( [OH] ) [OH] ) [n] [o] [c] 1 [C@@] ( [CH3] ) ( [CH3] ) [CH3] ) [C] ( [OH] ) = [O] <BOS> [NH3+] { Thr 34 HB } { Thr 34 VDW } { Glu 41 HB } { Glu 41 VDW } { Pro 23 VDW } { Thr 34 HB } [C@@H] ( [CH2] { Tyr 25 Hy } [c] 1 [c] ( [O] [CH2] [P@@] ( = [O] ) ( [OH] ) [OH] ) [n] [o] [c] 1 [C@@] ( [CH3] ) ( [CH3] ) [CH3] ) [C] ( [OH] ) = [O] { Ser 50 VDW } { Ser 50 HB } { Gly 37 VDW } { Thr 34 HB } { Thr 34 VDW }
+Predicted affinity: 7.112249374389648
+Generated FusionSmi 1: [CH3] [C@] 1 2 [CH2] [CH2] [C@@H] 3 [c] 4 [cH] [cH] [c] ( [OH] ) [cH] [c] 4 [CH2] [CH2] [C@H] 3 [C@@H] 1 [CH2] [CH2] [C@@] 2 ( [OH] ) [CH] = [CH] [c] 1 [cH] [cH] [cH] [cH] [c] 1 [C@@] ( [F] ) ( [F] ) [F] <BOS> [CH3] { Met 19 Hy } { Leu 46 Hy } { Phe 10 Hy } [C@] 1 2 [CH2] { Leu 31 Hy } [CH2] { Leu 38 Hy } [C@@H] 3 [c] 4 [cH] { Leu 65 Hy } [cH] { Met 15 Hy } { Met 15 VDW } [c] { His 18 Hy } ( [OH] { His 18 HB } { His 18 VDW } ) [cH] { Gly 42 VDW } [c] 4 [CH2] { Met 17 Hy } [CH2] [C@H] 3 [C@@H] 1 [CH2] { Leu 46 VDW } [CH2] [C@@] 2 ( [OH] { Met 17 VDW } ) [CH] { Ile 11 Hy } = [CH] { Leu 46 VDW } [c] 1 [cH] { Leu 32 Hy } [cH] { Leu 39 Hy } [cH] { Leu 39 VDW } [cH] [c] 1 [C@@] ( [F] ) ( [F] { Leu 40 VDW } ) [F]
+Predicted affinity: 6.99422550201416
+Generated FusionSmi 1: [n] 1 [cH] [cH] [c] ( [NH] [c] 2 [cH] [cH] [cH] [cH] [c] 2 - [c] 2 [cH] [cH] [cH] [cH] [cH] 2 ) [n] [c] 1 [NH] [c] 1 [cH] [cH] [c] ( [C] ( = [O] ) [OH] ) [cH] [cH] 1 <BOS> [n] { Tyr 5 VDW } 1 [cH] { Leu 11 Hy } [cH] [c] ( [NH] [c] 2 [cH] [cH] [cH] [cH] [c] 2 - [c] 2 [cH] [cH] [cH] [cH] [cH] 2 ) [n] [c] 1 [NH] [c] 1 [cH] [cH] [c] ( [C] ( = [O] ) [OH] ) [cH] [cH] 1
