@@ -1,0 +1,5 @@
+# 忽略 affinity_only 文件夹下的所有内容
+affinity_only/
+
+# 忽略 local 文件夹下的所有内容
+local/
