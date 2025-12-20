@@ -1,11 +1,12 @@
 name: interactsmi_env
 channels:
-  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge
-  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main
   - conda-forge
+  - pytorch
+  - nvidia
   - defaults
 dependencies:
   - python=3.9
+  - pytorch=2.6.0
   - pytorch-cuda=12.4
   - torchaudio
   - torchvision
@@ -13,3 +14,7 @@ dependencies:
   - pymol-open-source
   - openbabel
   - rdkit
+  - numpy
+  - h5py
+  - scipy
+  - scikit-learn
