@@ -3,7 +3,7 @@ import argparse
 def get_config():
     parser = argparse.ArgumentParser(description="Argparse for compound-protein interactions prediction")
     parser.add_argument("-multitask", type=bool, default=True, help="multitask")
-    parser.add_argument("-best_model", type=str, default="../checkpoints/checkpoint.pt")
+    parser.add_argument("-best_model", type=str, default="../checkpoints/checkpoint_fp/checkpoint.pt")
 
     parser.add_argument('-fusion_type', type=str, default='bidirectional', 
                         help='bidirectional, cross_attention, co_attention, multi_head_cross, ban')
@@ -17,9 +17,9 @@ def get_config():
     parser.add_argument("-vocab", type=str, default="../vocab/1024/vocab.pkl", help="vocab path",)
     parser.add_argument("-vocab_size", type=int, default=287, help="vocab size")
     parser.add_argument("-prot_esmc_embed", type=str, default="../data/demo_dict_esmc.pkl", help="pretrained protein embed")
-    parser.add_argument("-fingerprint_dict_path", type=str, default="../datasets/fingerprint_dict.pkl")
-    parser.add_argument("-atom_dict_path", type=str, default="../datasets/atom_dict.pkl")
-    parser.add_argument("-bond_dict_path", type=str, default="../datasets/bond_dict.pkl")
+    parser.add_argument("-fingerprint_dict_path", type=str, default="../datasets/datasets_fp/fingerprint_dict.pkl")
+    parser.add_argument("-atom_dict_path", type=str, default="../datasets/datasets_fp/atom_dict.pkl")
+    parser.add_argument("-bond_dict_path", type=str, default="../datasets/datasets_fp/bond_dict.pkl")
 
     # Decoder
     parser.add_argument("-decoder_layers", type=int, default=10, help="decoder_layers")
