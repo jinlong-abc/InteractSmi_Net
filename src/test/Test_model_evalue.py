@@ -149,7 +149,7 @@ def test_model(model, checkpoint_path, batch_data, device, vocab, max_len=200):
                     if token not in ["<PAD>"]:
                         tokens.append(token)
                 seq = " ".join(tokens)
-                print(f"Generated FusionSmi {i+1}: {seq}")
+                print(f"Generated InteractSmi {i+1}: {seq}")
 
 
 if __name__ == '__main__':
