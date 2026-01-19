@@ -81,3 +81,8 @@ The datasets used in this study are publicly accessible from the following sourc
 * Fast training and inference (~10x speedup compared to complex-based methods)
 * Interpretable binding pattern predictions
 * Supports reverse target fishing applications
+
+---
+
+## License
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). See LICENSE file for details.
