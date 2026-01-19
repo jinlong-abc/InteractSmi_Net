@@ -1,6 +1,8 @@
 # InteractSmi
 **Learning the Language of Protein–Ligand Interactions**
 
+**Note:** InteractSmi technology is patent-pending.  
+
 InteractSmi is a sequence-based fingerprint for encoding protein–ligand interactions into a compact and interpretable representation. Built on InteractSmi, InteractSmi-Net enables efficient binding-affinity prediction and interaction-pattern inference, even when reference protein or ligand structures are unavailable.
 
 
