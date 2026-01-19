@@ -79,8 +79,3 @@ The datasets used in this study are publicly accessible from the following sourc
 * Fast training and inference (~10x speedup compared to complex-based methods)
 * Interpretable binding pattern predictions
 * Supports reverse target fishing applications
-
----
-
-## License
-The source code is made publicly available under the MIT License.
