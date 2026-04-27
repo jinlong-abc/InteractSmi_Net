@@ -1,6 +1,8 @@
 # InteractSmi
 **Learning the Language of Protein–Ligand Interactions**
 
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jinlong-abc/InteractSmi_Net/blob/master/InteractSmi_Net_Demo.ipynb)
+
 **Note:** InteractSmi technology is patent-pending.  
 
 InteractSmi is a sequence-based fingerprint for encoding protein–ligand interactions into a compact and interpretable representation. Built on InteractSmi, InteractSmi-Net enables efficient binding-affinity prediction and interaction-pattern inference, even when reference protein or ligand structures are unavailable.
