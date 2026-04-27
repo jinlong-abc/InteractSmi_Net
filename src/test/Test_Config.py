@@ -40,5 +40,5 @@ def get_config():
     parser.add_argument("-test_data", type=str, default="../data/data.csv", help="test data path")
     parser.add_argument("-batch_size", type=int, default=1, help="test batch size")
     
-    test_params, _ = parser.parse_known_args()
+    test_params, _ = parser.parse_known_args(args=[])
     return test_params
