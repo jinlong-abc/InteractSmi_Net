@@ -1,0 +1,11 @@
+# Runtime data and intermediate results
+data/
+output/
+external/
+*.pkl
+*.csv
+*.txt
+*.fasta
+*.tsv
+__pycache__/
+*.pyc
