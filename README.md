@@ -16,6 +16,10 @@ InteractSmi encodes protein-ligand interactions into a compact, interpretable se
   <img src="image/InteractSmi.svg" width="600"/>
 </p>
 
+### Building the fingerprint
+
+The [`fingerprint_construction/`](fingerprint_construction/) directory contains the pipeline that turns a raw PDBBind dataset into InteractSmi fingerprints (proLIF and closest-atoms interaction fingerprints, merged as `prolif_closest` and rendered as AtomIdx fusion sequences). See [`fingerprint_construction/README.md`](fingerprint_construction/README.md) for setup and usage.
+
 ---
 
 ## InteractSmi-Net Model Architecture
