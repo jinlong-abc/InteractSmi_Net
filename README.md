@@ -55,32 +55,50 @@ This will execute the test script and save logs to `evalue_log.txt`.
 
 ## Training
 
+InteractSmi-Net is trained in three stages:
+
+1. **Fingerprint pretraining** on the filtered BindingNet corpus and the PDBbind training subset, *without* affinity supervision.
+2. **Fingerprint fine-tuning** on the PDBbind training subset only.
+3. **Affinity prediction**, initialized from the stage-2 checkpoint: PDBbind is optimized with a joint affinity + fingerprint loss; ChEMBL uses only the affinity loss with the fingerprint decoder frozen.
+
 First build the InteractSmi fingerprints for your data with [`fingerprint_construction/`](fingerprint_construction/) (see above), then prepare the ESMC protein embeddings and the CSV/HDF5 inputs. Run the training from `src/`:
 
 ```bash
 # Stage 1 -- fingerprint pretraining (no affinity supervision)
 python -m model.train --stage 1 --affinity_weight 0.0 --sequence_weight 1.0 \
-    -train_csv_data_path /path/to/train.csv -test_csv_data_path /path/to/test.csv \
-    -train_dataset_path /path/to/train.h5 -test_dataset_path /path/to/test.h5 \
-    -prot_esmc_embed /path/to/esmc.pkl -vocab /path/to/vocab.pkl
+    --train_csv_data_path /path/to/train.csv --test_csv_data_path /path/to/test.csv \
+    --train_dataset_path /path/to/train.h5 --test_dataset_path /path/to/test.h5 \
+    --prot_esmc_embed /path/to/esmc.pkl --vocab /path/to/vocab.pkl
 
 # Stage 2 -- fingerprint fine-tuning (PDBbind train only)
 python -m model.train --stage 2 --affinity_weight 0.0 --sequence_weight 1.0 \
-    --finetune_from <stage1>/test_best_models/best_sequence_loss.pt \
+    --finetune_from <stage1>/dev_best_models/best_model.pt \
     ... (same data arguments)
 
 # Stage 3 -- affinity prediction
 # PDBbind: joint affinity + fingerprint
 python -m model.train --stage 3 --task pdbbind --affinity_weight 1.0 --sequence_weight 0.1 \
-    --finetune_from <stage2>/test_best_models/best_sequence_loss.pt ...
+    --finetune_from <stage2>/dev_best_models/best_model.pt ...
 
 # ChEMBL: affinity only, frozen decoder
 python -m model.train --stage 3 --task chembl --affinity_weight 1.0 --sequence_weight 0.0 \
-    --finetune_from <stage2>/test_best_models/best_sequence_loss.pt \
+    --finetune_from <stage2>/dev_best_models/best_model.pt \
     --freeze_layers '{"transformer_decoder": true, "generator": true, "embedwithpos": true}' ...
 ```
 
 All paths and hyperparameters are command-line arguments — see [`src/config.py`](src/config.py) for the full list and defaults.
+
+The best checkpoint of each stage is written to `{checkpoint_path}/{name}/dev_best_models/best_model.pt` (selected by the lowest validation loss); pass that path to `--finetune_from` for the next stage.
+
+### Data paths
+
+`train.py` reads the following inputs (all set as `--...` flags in `src/config.py`):
+
+* `--train_csv_data_path` / `--test_csv_data_path` — CSV with the columns `ID, UniProt, Assay Result, pInteraction, Normal SMILES, SMILES, FusionSmi, Mapped_SMILES, IntSeq, Sequence`. Build it from raw PDBBind with `fingerprint_construction/` (its `Fusion_SMILES` / `IntSeq` outputs are the `FusionSmi` / `IntSeq` columns here).
+* `--train_dataset_path` / `--test_dataset_path` — HDF5 datasets produced from the CSV by `src/data/data_processor.py` on the first run.
+* `--prot_esmc_embed` — precomputed ESMC protein embeddings (pickle mapping UniProt id → embedding; expected embedding dim 1152).
+* `--vocab` — tokenizer vocabulary for the fusion-sequence tokens.
+* `--dict_prefix` — prefix of the `atom_dict.pkl` / `bond_dict.pkl` / `fingerprint_dict.pkl` files.
 
 ---
 

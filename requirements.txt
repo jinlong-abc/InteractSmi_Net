@@ -1,0 +1,12 @@
+# InteractSmi-Net training dependencies.
+# A full conda environment (with CUDA PyTorch) is provided in environment.yml;
+# this file lists the pip-installable packages for reference / lighter setups.
+
+torch>=2.0
+numpy>=1.24
+pandas>=1.5
+scipy>=1.10
+scikit-learn>=1.2
+rdkit>=2023.3
+h5py>=3.8
+tqdm>=4.65

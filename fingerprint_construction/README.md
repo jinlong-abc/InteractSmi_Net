@@ -33,7 +33,7 @@ PDBBind general-set
         │        03  SMILES + affinity table  (INDEX_general_PL.2020 + ligand pdb)
         │        04  add protein sequence     (UniProt idmapping FASTA)
         ├── 05  parse complexes → pickle
-        │        06  build SSW input fasta  ──► external SSW → seq_align.txt
+        │        06  build SSW input fasta  ──► SSW alignment → seq_align.txt
         ├── 07  proLIF fingerprint
         ├── 08  closest-atoms fingerprint   ──► 09  map proLIF to UniProt
         ▼
@@ -61,6 +61,7 @@ PDBBind general-set
 config.py            central configuration (edit PDBBIND_DIR etc.)
 common/              shared data classes, constants, SSW-output parser
 steps/               24 numbered scripts, run in order
+ssw_align.py         SSW alignment reference script (step 06 -> seq_align.txt)
 data/                intermediate results (created at run time)
 external/            UniProt idmapping + pre-computed SSW alignment (see below)
 requirements.txt     Python dependencies
@@ -101,13 +102,19 @@ Three things are *not* shipped with this repository:
    (`idmapping_selected.tab` filtered to `From`+`Entry` with a header added, and
    the UniProtKB FASTA). Set `IDMAPPING_FASTA` and `IDMAPPING_TSV`.
 
-3. **SSW sequence alignment** (step 06). Steps 06 writes two FASTA files
-   (`pdbbind_ssw_target.fasta`, `pdbbind_ssw_query.fasta`); you run your SSW
-   aligner over them and save the result to `data/pdbbind_seq_align.txt` in the
-   format consumed by `common/ssw.py` (one record per target with
-   `target_name`, `query_name`, `optimal_alignment_score`, `target_begin:`,
-   `query_begin:` fields). Any Smith–Waterman implementation that emits this
-   format works.
+3. **SSW sequence alignment** (step 06). Step 06 writes two FASTA files
+   (`pdbbind_ssw_target.fasta`, `pdbbind_ssw_query.fasta`); align them and save
+   the result to `data/pdbbind_seq_align.txt`. A reference script is provided:
+
+   ```bash
+   pip install ssw
+   python ssw_align.py --target data/pdbbind_ssw_target.fasta --query data/pdbbind_ssw_query.fasta --output data/pdbbind_seq_align.txt
+   ```
+
+   The exact output format (parsed by `common/ssw.py`) is documented in the
+   `ssw_align.py` docstring; any Smith–Waterman implementation that emits that
+   format works. Alternatively place a pre-computed `pdbbind_seq_align.txt` in
+   `external/` and copy it into `data/`.
 
 ## Configuration
 
@@ -133,7 +140,7 @@ python steps/03_build_smiles_affinity.py
 python steps/04_add_protein_sequences.py
 python steps/05_parse_pdb_complexes.py
 python steps/06_build_ssw_input.py
-# ... run your SSW aligner -> data/pdbbind_seq_align.txt ...
+# ... run ssw_align.py -> data/pdbbind_seq_align.txt ...
 python steps/07_run_prolif.py
 python steps/08_find_closest_atoms.py
 python steps/09_map_prolif_to_uniprot.py
@@ -191,4 +198,6 @@ Interaction tokens: `Hy` hydrophobic, `HB` hydrogen bond, `Pi` π-stacking,
 
 ## License
 
-MIT. See `LICENSE`.
+This directory is part of the InteractSmi_Net repository and is licensed under
+the GNU Affero General Public License v3.0 (AGPL-3.0); see the repository root
+`LICENSE`.

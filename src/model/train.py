@@ -8,10 +8,10 @@ Implements the training protocol described in the paper:
 * Stage 3 -- downstream affinity prediction (PDBBind: joint affinity + fingerprint
   loss; ChEMBL: affinity loss only with the fingerprint decoder frozen).
 
-The stage is selected by ``--stage``; the actual objective is driven by
-``-affinity_weight`` / ``-sequence_weight``, and finetuning by
-``-finetune_from`` / ``-finetune_lr`` / ``-freeze_layers``. See config.py for
-the exact command lines.
+Model selection uses the validation (dev) set ONLY: each epoch evaluates dev and
+keeps a single checkpoint with the lowest dev loss. The test set is evaluated
+exactly once, at the end, with the best dev model -- it is never used for
+checkpoint selection or early stopping.
 
 Run from ``src/``:
 
@@ -24,20 +24,14 @@ import json
 import pickle
 
 import torch
-import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np
 
 from model.model import FusionCPI
-from model.decoder_utils import FusionCPILoss, AdaptiveFusionCPILoss
+from model.decoder_utils import FusionCPILoss
 from data.data_utils import prepare_datasets, load_protein_embeddings
 from config import get_config
-from model.train_utils import (
-    train_one_epoch,
-    save_checkpoint,
-    evaluate_model,
-    save_best_model,
-)
+from model.train_utils import train_one_epoch, save_checkpoint, test
 
 
 def setup_environment(params):
@@ -111,22 +105,23 @@ def freeze_model_layers(model, freeze_config):
     print(f"[Freeze] {frozen}/{total} parameters frozen ({100.0 * frozen / total:.2f}%)")
 
 
+def _state_dict(model):
+    return model.module.state_dict() if hasattr(model, "module") else model.state_dict()
+
+
 def train_model(model, criterion, optimizer, scheduler, train_data, dev_data, test_data,
                 device, params, uniprotid_prot_embed_dict, vocab):
-    """Run the training loop (joint multitask objective)."""
+    """Train, selecting the best model by the validation set only."""
     print("Starting training...")
 
     global_step = 0
     idx = np.arange(len(train_data[0]))
-    best_dev = {"loss": float("inf"), "affinity_loss": float("inf"),
-                "sequence_loss": float("inf"), "rmse": float("inf")}
-    best_test = dict(best_dev)
+    best_dev_loss = float("inf")
 
     os.makedirs(params.checkpoint_path, exist_ok=True)
     dev_best_dir = os.path.join(params.checkpoint_path, params.name, "dev_best_models")
-    test_best_dir = os.path.join(params.checkpoint_path, params.name, "test_best_models")
     os.makedirs(dev_best_dir, exist_ok=True)
-    os.makedirs(test_best_dir, exist_ok=True)
+    best_model_path = os.path.join(dev_best_dir, "best_model.pt")
 
     for epoch in range(params.num_epochs):
         print(f"\n=== Epoch {epoch + 1}/{params.num_epochs} ===")
@@ -137,33 +132,48 @@ def train_model(model, criterion, optimizer, scheduler, train_data, dev_data, te
         scheduler.step()
         print(f"Learning rate: {optimizer.param_groups[0]['lr']:.6f}")
 
-        dev_metrics, test_metrics = evaluate_model(
-            model, dev_data, test_data, params.batch_size, device,
-            criterion, uniprotid_prot_embed_dict, vocab=vocab, params=params,
+        # Evaluate the validation set only -- the test set is never used for
+        # model selection.
+        (rmse_dev, _, pearson_dev, spearman_dev, _, _,
+         loss_dev, aff_dev, seq_dev) = test(
+            model, dev_data, params.batch_size, device, criterion,
+            uniprotid_prot_embed_dict, vocab=vocab, params=params, multitask=True,
         )
-        (rmse_dev, _, _, loss_dev, aff_dev, seq_dev) = dev_metrics
-        (rmse_test, _, _, loss_test, aff_test, seq_test) = test_metrics
 
         if (epoch + 1) % params.save_checkpoint_every == 0:
             save_checkpoint(model, optimizer, epoch + 1, global_step,
                             params.checkpoint_path, params.name)
 
-        metrics_dev = {"loss": loss_dev, "affinity_loss": aff_dev,
-                       "sequence_loss": seq_dev, "rmse": rmse_dev}
-        metrics_test = {"loss": loss_test, "affinity_loss": aff_test,
-                        "sequence_loss": seq_test, "rmse": rmse_test}
+        if loss_dev < best_dev_loss:
+            best_dev_loss = loss_dev
+            torch.save(
+                {"epoch": epoch + 1, "global_step": global_step,
+                 "model_state": _state_dict(model)},
+                best_model_path,
+            )
+            print(
+                f"[best dev] loss={loss_dev:.6f} rmse={rmse_dev:.4f} "
+                f"pearson={pearson_dev:.4f} spearman={spearman_dev:.4f}"
+            )
 
-        best_dev = save_best_model(model, optimizer, epoch + 1, global_step,
-                                   metrics_dev, best_dev, save_dir=dev_best_dir,
-                                   multitask=True)
-        best_test = save_best_model(model, optimizer, epoch + 1, global_step,
-                                    metrics_test, best_test, save_dir=test_best_dir,
-                                    multitask=True)
+    # Final test evaluation, exactly once, using the best validation model.
+    print("\n=== Final test evaluation (best dev model) ===")
+    checkpoint = torch.load(best_model_path, map_location=device)
+    model.load_state_dict(checkpoint["model_state"])
+    (rmse_test, _, pearson_test, spearman_test, _, _,
+     loss_test, aff_test, seq_test) = test(
+        model, test_data, params.batch_size, device, criterion,
+        uniprotid_prot_embed_dict, vocab=vocab, params=params, multitask=True,
+    )
+    print(f"Test -- loss={loss_test:.6f} rmse={rmse_test:.4f} "
+          f"pearson={pearson_test:.4f} spearman={spearman_test:.4f}")
 
-        print(f"Best Dev RMSE so far: {best_dev['rmse']:.4f}")
-        print(f"Best Test RMSE so far: {best_test['rmse']:.4f}")
-
-    return best_dev, best_test
+    return {
+        "best_dev_loss": best_dev_loss,
+        "test_rmse": rmse_test,
+        "test_pearson": pearson_test,
+        "test_spearman": spearman_test,
+    }
 
 
 def main():
@@ -194,8 +204,7 @@ def main():
             print(f"Loaded pretrained model from {params.finetune_from}")
 
             if params.freeze_layers:
-                freeze_config = json.loads(params.freeze_layers)
-                freeze_model_layers(model, freeze_config)
+                freeze_model_layers(model, json.loads(params.freeze_layers))
         else:
             print(f"Pretrained model not found: {params.finetune_from}")
 
@@ -209,14 +218,15 @@ def main():
         optimizer = optim.Adam(model.parameters(), lr=params.lr, amsgrad=True)
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=params.step_size, gamma=params.gamma)
 
-    best_dev, best_test = train_model(
+    results = train_model(
         model, criterion, optimizer, scheduler, train_data, dev_data, test_data,
         device, params, uniprotid_prot_embed_dict, vocab,
     )
 
     print("\n=== Training Completed ===")
-    print(f"Best Dev RMSE: {best_dev['rmse']:.4f}")
-    print(f"Best Test RMSE: {best_test['rmse']:.4f}")
+    print(f"Best dev loss: {results['best_dev_loss']:.6f}")
+    print(f"Final test -- RMSE: {results['test_rmse']:.4f}, "
+          f"Pearson: {results['test_pearson']:.4f}, Spearman: {results['test_spearman']:.4f}")
     return 0
 
 
