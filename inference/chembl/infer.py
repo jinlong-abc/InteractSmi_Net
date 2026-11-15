@@ -73,34 +73,39 @@ def load_model(weights_path, n_atom, device):
     return model
 
 
-def predict(model, fp_dict, store, items, device):
-    """items: list of (smiles, protein_id)."""
-    graphs = [build_graph(smiles, fp_dict) for smiles, _ in items]
-    embeds = [store.get(pid) for _, pid in items]
+def predict(model, fp_dict, store, items, device, batch_size=32):
+    """items: list of (smiles, protein_id). Batched to bound memory usage."""
+    all_preds = []
+    for start in range(0, len(items), batch_size):
+        batch = items[start:start + batch_size]
+        graphs = [build_graph(smiles, fp_dict) for smiles, _ in batch]
+        embeds = [store.get(pid) for _, pid in batch]
 
-    n = len(items)
-    max_m = max(len(g[0]) for g in graphs)
-    max_p = max(len(e) for e in embeds)
-    dim = embeds[0].shape[1]
+        n = len(batch)
+        max_m = max(len(g[0]) for g in graphs)
+        max_p = max(len(e) for e in embeds)
+        dim = embeds[0].shape[1]
 
-    atoms = torch.zeros((n, max_m), dtype=torch.long)
-    amask = torch.zeros((n, max_m), dtype=torch.bool)
-    adj = torch.zeros((n, max_m, max_m), dtype=torch.bool)
-    prot = torch.zeros((n, max_p, dim), dtype=torch.float32)
-    pmask = torch.zeros((n, max_p), dtype=torch.bool)
+        atoms = torch.zeros((n, max_m), dtype=torch.long)
+        amask = torch.zeros((n, max_m), dtype=torch.bool)
+        adj = torch.zeros((n, max_m, max_m), dtype=torch.bool)
+        prot = torch.zeros((n, max_p, dim), dtype=torch.float32)
+        pmask = torch.zeros((n, max_p), dtype=torch.bool)
 
-    for j, ((ids, edges), emb) in enumerate(zip(graphs, embeds)):
-        m, p = len(ids), len(emb)
-        atoms[j, :m] = torch.from_numpy(ids) + 1
-        amask[j, :m] = True
-        adj[j, edges[:, 0], edges[:, 1]] = True
-        prot[j, :p] = torch.from_numpy(emb).float()
-        pmask[j, :p] = True
+        for j, ((ids, edges), emb) in enumerate(zip(graphs, embeds)):
+            m, p = len(ids), len(emb)
+            atoms[j, :m] = torch.from_numpy(ids) + 1
+            amask[j, :m] = True
+            adj[j, edges[:, 0], edges[:, 1]] = True
+            prot[j, :p] = torch.from_numpy(emb).float()
+            pmask[j, :p] = True
 
-    with torch.no_grad():
-        out = model(atoms.to(device), amask.to(device), adj.to(device),
-                    prot.to(device), pmask.to(device))
-    return out.view(-1).float().cpu().numpy()
+        with torch.no_grad():
+            out = model(atoms.to(device), amask.to(device), adj.to(device),
+                        prot.to(device), pmask.to(device))
+        all_preds.append(out.view(-1).float().cpu().numpy())
+
+    return np.concatenate(all_preds) if all_preds else np.array([], dtype=np.float32)
 
 
 def main():
@@ -111,6 +116,7 @@ def main():
     ap.add_argument("--output", default="predictions.tsv")
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--embed-dir", default=str(EMBED_DIR))
+    ap.add_argument("--batch-size", type=int, default=32, help="inference batch size")
     args = ap.parse_args()
 
     with open(FP_DICT, "rb") as f:
@@ -126,14 +132,15 @@ def main():
         prot_col = ("uniprot_id" if "uniprot_id" in df.columns
                     else "protein" if "protein" in df.columns else df.columns[1])
         items = list(zip(df[smiles_col].astype(str), df[prot_col].astype(str)))
-        preds = predict(model, fp_dict, store, items, device)
+        preds = predict(model, fp_dict, store, items, device, batch_size=args.batch_size)
         df["prediction"] = preds
         df.to_csv(args.output, sep="\t", index=False)
         print(f"wrote {len(df)} predictions to {args.output}")
     else:
         if not (args.smiles and args.protein):
             raise SystemExit("provide --smiles and --protein, or --tsv")
-        pred = predict(model, fp_dict, store, [(args.smiles, args.protein)], device)
+        pred = predict(model, fp_dict, store, [(args.smiles, args.protein)], device,
+                       batch_size=1)
         print(f"predicted pAffinity: {pred[0]:.4f}")
 
 

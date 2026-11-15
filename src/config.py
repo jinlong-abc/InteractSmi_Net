@@ -87,6 +87,8 @@ def get_config():
     parser.add_argument("--train_dataset_path", type=str, default="/path/to/train.h5")
     parser.add_argument("--test_dataset_path", type=str, default="/path/to/test.h5")
     parser.add_argument("--vocab", type=str, default="/path/to/vocab.pkl")
+    parser.add_argument("--dict_dir", type=str, default="../datasets",
+                        help="directory holding the atom/bond/fingerprint dictionary files")
     parser.add_argument("--dict_prefix", type=str, default="",
                         help="prefix for the atom/bond/fingerprint dictionary files")
 

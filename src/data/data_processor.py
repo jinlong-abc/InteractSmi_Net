@@ -13,7 +13,7 @@ class HDF5DataProcessor:
         self.compression = compression
         self.compression_opts = compression_opts
         # 加载字典
-        if args is None or not hasattr(args, 'dict_prefix'):
+        if args is None or not hasattr(args, 'dict_prefix') or not args.dict_prefix:
             self.graph_builder = MolecularGraphBuilder()
         else:
             dicts = MolecularGraphBuilder.load_dicts(prefix=args.dict_prefix)

@@ -17,7 +17,7 @@ def prepare_datasets(params):
     加载数据集，同时支持第一次处理保存全局字典，之后直接读取
     """
     dataset = params.dataset
-    data_dir = os.path.join('../datasets', dataset)
+    data_dir = os.path.join(params.dict_dir, dataset)
     bond_dict_path = os.path.join(data_dir, 'bond_dict.pkl')
     atom_dict_path = os.path.join(data_dir, 'atom_dict.pkl')
     fingerprint_dict_path = os.path.join(data_dir, 'fingerprint_dict.pkl')
