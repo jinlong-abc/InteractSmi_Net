@@ -53,6 +53,37 @@ This will execute the test script and save logs to `evalue_log.txt`.
 
 ---
 
+## Training
+
+First build the InteractSmi fingerprints for your data with [`fingerprint_construction/`](fingerprint_construction/) (see above), then prepare the ESMC protein embeddings and the CSV/HDF5 inputs. Run the training from `src/`:
+
+```bash
+# Stage 1 -- fingerprint pretraining (no affinity supervision)
+python -m model.train --stage 1 --affinity_weight 0.0 --sequence_weight 1.0 \
+    -train_csv_data_path /path/to/train.csv -test_csv_data_path /path/to/test.csv \
+    -train_dataset_path /path/to/train.h5 -test_dataset_path /path/to/test.h5 \
+    -prot_esmc_embed /path/to/esmc.pkl -vocab /path/to/vocab.pkl
+
+# Stage 2 -- fingerprint fine-tuning (PDBbind train only)
+python -m model.train --stage 2 --affinity_weight 0.0 --sequence_weight 1.0 \
+    --finetune_from <stage1>/test_best_models/best_sequence_loss.pt \
+    ... (same data arguments)
+
+# Stage 3 -- affinity prediction
+# PDBbind: joint affinity + fingerprint
+python -m model.train --stage 3 --task pdbbind --affinity_weight 1.0 --sequence_weight 0.1 \
+    --finetune_from <stage2>/test_best_models/best_sequence_loss.pt ...
+
+# ChEMBL: affinity only, frozen decoder
+python -m model.train --stage 3 --task chembl --affinity_weight 1.0 --sequence_weight 0.0 \
+    --finetune_from <stage2>/test_best_models/best_sequence_loss.pt \
+    --freeze_layers '{"transformer_decoder": true, "generator": true, "embedwithpos": true}' ...
+```
+
+All paths and hyperparameters are command-line arguments — see [`src/config.py`](src/config.py) for the full list and defaults.
+
+---
+
 ## Dependencies
 
 * Python 3.9
