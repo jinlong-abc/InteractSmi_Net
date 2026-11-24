@@ -1,9 +1,7 @@
 # InteractSmi
 **Learning the Language of Protein–Ligand Interactions**
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jinlong-abc/InteractSmi_Net/blob/master/InteractSmi_Net_Demo.ipynb)
-
-**Note:** InteractSmi technology is patent-pending.  
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/jinlong-abc/InteractSmi_Net/blob/master/InteractSmi_Net_Demo.ipynb) 
 
 InteractSmi is a sequence-based fingerprint for encoding protein–ligand interactions into a compact and interpretable representation. Built on InteractSmi, InteractSmi-Net enables efficient binding-affinity prediction and interaction-pattern inference, even when reference protein or ligand structures are unavailable.
 
@@ -39,19 +37,31 @@ Create the environment from the provided `environment.yml`:
 ```bash
 conda env create -f environment.yml
 conda activate interactsmi_env
-````
+```
+
+PyTorch is installed via pip (bundled CUDA). If you need the CUDA 12.4 build
+used in training, run:
+
+```bash
+pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+```
+
+Run the commands one at a time (do not chain them with `&&` on one line).
 
 ### Test the Environment
 
-Run the test command:
+The `test` package lives under `src/`, so run the test from there:
 
 ```bash
+cd src
 python -m test.Test_model_evalue > evalue_log.txt 2>&1
+cat evalue_log.txt
 ```
 
-This will execute the test script and save logs to `evalue_log.txt`.
-
----
+`> evalue_log.txt 2>&1` captures both stdout and stderr, so the log file is
+created even if the command fails. A non-empty log does not mean the test
+passed — check that it contains `Predicted affinity:` / `Generated InteractSmi:`
+and no traceback (e.g. `No module named`).
 
 ## Training
 

@@ -9,4 +9,3 @@ __pycache__/
 
 # 大文件（放 Zenodo，不入 git）
 inference/casf/casf285_esmc.pkl
-inference/casf/checkpoints/without_decoder.pt

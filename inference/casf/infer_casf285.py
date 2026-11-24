@@ -1,7 +1,7 @@
-"""PDBBind CASF-2016 (285 complexes) inference — without-decoder model.
+"""PDBBind CASF-2016 inference — without-decoder model.
 
 Runs the *without-decoder* affinity model (num_head=11, n_atom=1549) on the
-285-complex CASF-2016 core set, producing RMSE ≈ 1.30.
+285-complex CASF-2016 core set.
 
 The model code is bundled in `model/` and the graph builder in
 `graph_builder.py` (copied from `Arch_Lab/without_decoder_apply/src/`).
